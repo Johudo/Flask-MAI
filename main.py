@@ -1,10 +1,10 @@
-from flask import Flask, abort, redirect, render_template
+from flask import Flask, abort, redirect, render_template, request
 
 app = Flask(__name__)
 
 users = [
-    {"name": "Alex", "id": 1, "surname": "Turner", "age": 36},
-    {"name": "Thom", "id": 2, "surname": "Yorke", "age": 53},
+    {"id": 1, "name": "Alex", "surname": "Turner", "age": 36},
+    {"id": 2, "name": "Thom", "surname": "Yorke", "age": 53},
 ]
 
 
@@ -16,6 +16,34 @@ def index():
 @app.route("/users")
 def users_page():
     return render_template("users.html", users=users)
+
+
+@app.route("/create-user", methods=["get", "post"])
+def create_user_page():
+    message = ""
+
+    if request.method == "GET":
+        return render_template("create_user.html")
+
+    name = request.form.get("name")
+    surname = request.form.get("surname")
+    age = request.form.get("age")
+
+    if not name or not surname or not age:
+        return render_template("create_user.html", message="ERROR: Empty fields (name, surname, age)")
+
+    try:
+        age = int(age)
+    except:
+        return render_template("create_user.html", message="ERROR: Invalid age")
+
+    last_user_id = 0
+
+    if len(users) > 0:
+        last_user_id = users[-1]["id"]
+
+    users.append({"id": last_user_id + 1, "name": name, "surname": surname, "age": age})
+    return render_template("create_user.html", message="SUCCESS")
 
 
 @app.route("/user/<int:user_id>")
